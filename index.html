@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Түн кімге тиесілі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: a single night-sky world; amber = ұйқы/мелатонин, cyan = экранның көгілдір жарығы. Cinema first, data second, new idea third, lab, review. */
+  --ink:#070B14;
+  --deep:#0E1526;
+  --line:#22304A;
+  --text:#E9ECF4;
+  --muted:#97A3BC;
+  --moon:#F2B655;
+  --blue:#4FC3F7;
+  --danger:#FF7A6B;
+  --ok:#7BE0B0;
+  --display:"Unbounded", "Onest", system-ui, sans-serif;
+  --body:"Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
+a{color:var(--blue)}
+:focus-visible{outline:2px solid var(--moon);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.5rem,4.2vw,2.4rem);font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.num{font-variant-numeric:tabular-nums}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:20;background:rgba(7,11,20,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;padding-top:10px;padding-bottom:10px}
+.nav .wrap::-webkit-scrollbar{display:none}
+.brand{font-family:var(--display);font-weight:800;font-size:.85rem;white-space:nowrap;margin-right:8px;color:var(--moon)}
+.nav a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.85rem;padding:6px 12px;border-radius:999px;border:1px solid transparent}
+.nav a:hover{color:var(--text);border-color:var(--line)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero .wrap{position:relative;z-index:1;padding-top:56px;padding-bottom:40px;display:grid;gap:22px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(2rem,7vw,4.4rem);font-weight:800;max-width:14ch}
+.hero h1 .a{color:var(--moon)}
+.hero h1 .b{color:var(--blue)}
+.lead{max-width:60ch;color:#C9D1E3;font-size:1.05rem}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:6px}
+.stat{background:rgba(14,21,38,.72);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat b{display:block;font-family:var(--display);font-size:clamp(1.2rem,3.4vw,1.8rem);font-weight:700}
+.stat span{display:block;font-size:.8rem;color:var(--muted);line-height:1.35;margin-top:4px}
+.stat.new{border-color:rgba(242,182,85,.55)}
+.stat.new b{color:var(--moon)}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{appearance:none;font:600 .92rem var(--body);color:var(--ink);background:var(--moon);border:0;border-radius:999px;padding:11px 18px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.small{padding:7px 13px;font-size:.82rem}
+
+section{padding:64px 0;border-bottom:1px solid var(--line)}
+.sec-head{display:grid;gap:10px;margin-bottom:26px;max-width:70ch}
+.sec-head p{color:var(--muted)}
+
+/* cinema */
+.cinema{background:#03060D;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.screen{position:relative;aspect-ratio:16/9;min-height:300px;background:#03060D}
+#cineCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ep-title{position:absolute;left:16px;top:14px;right:16px;display:flex;gap:10px;align-items:baseline;pointer-events:none}
+.ep-title .k{font-family:var(--mono);font-size:.72rem;color:var(--moon)}
+.ep-title .t{font-family:var(--display);font-size:clamp(.85rem,2.4vw,1.15rem);font-weight:700}
+.caption{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(92%,760px);text-align:center;background:rgba(3,6,13,.78);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;font-size:clamp(.85rem,2.3vw,1.05rem);line-height:1.45;min-height:2.6em}
+.bigplay{position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;border:0;background:var(--moon);color:var(--ink);font-size:1.6rem;cursor:pointer;box-shadow:0 0 0 10px rgba(242,182,85,.18)}
+.bigplay[hidden]{display:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line);background:var(--deep)}
+.segs{display:flex;gap:4px;flex:1 1 220px;min-width:200px}
+.seg{flex:1;height:6px;border-radius:4px;background:var(--line);overflow:hidden;cursor:pointer;border:0;padding:0}
+.seg i{display:block;height:100%;width:0;background:var(--moon)}
+.ctl{appearance:none;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:999px;font:600 .8rem var(--body);padding:6px 12px;cursor:pointer}
+.ctl[aria-pressed="true"]{background:var(--blue);color:var(--ink);border-color:var(--blue)}
+.time{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--deep);color:var(--muted);border-radius:12px;padding:9px 12px;font:500 .82rem var(--body);cursor:pointer;text-align:left}
+.chip b{display:block;color:var(--text);font-weight:600}
+.chip[aria-current="true"]{border-color:var(--moon);color:var(--text)}
+.note{font-size:.82rem;color:var(--muted);margin-top:10px}
+
+/* data */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:var(--deep);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:14px;align-content:start}
+.card .sub{font-size:.85rem;color:var(--muted)}
+.dots{display:grid;gap:12px}
+.drow{display:grid;grid-template-columns:110px 1fr 44px;gap:10px;align-items:center;font-size:.85rem}
+.drow .lbl{color:#C9D1E3;line-height:1.25}
+.drow .lbl small{display:block;color:var(--muted);font-size:.72rem}
+.track{position:relative;height:22px;border-bottom:1px dashed var(--line)}
+.track .stem{position:absolute;bottom:-1px;left:0;height:2px}
+.track .dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%)}
+.drow .v{font-family:var(--mono);font-size:.8rem;text-align:right}
+.axis{display:grid;grid-template-columns:110px 1fr 44px;gap:10px;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.axis .ticks{display:flex;justify-content:space-between}
+.rtile{display:grid;gap:6px}
+.rtile .r{font-family:var(--display);font-size:2rem;font-weight:700}
+.meter{height:8px;border-radius:6px;background:var(--line);position:relative;overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;border-radius:6px}
+.pill{display:inline-block;font:600 .7rem var(--mono);padding:3px 8px;border-radius:999px;border:1px solid currentColor}
+.hbar{display:grid;grid-template-columns:130px 1fr 34px;gap:10px;align-items:center;font-size:.85rem}
+.hbar .bar{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--danger),var(--moon))}
+
+/* idea */
+.idea-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}
+.flow{width:100%;height:auto}
+.idea-list{display:grid;gap:16px;counter-reset:idea}
+.idea{display:grid;grid-template-columns:52px 1fr;gap:16px;background:var(--deep);border:1px solid var(--line);border-radius:16px;padding:20px}
+.idea .n{font-family:var(--display);font-weight:800;font-size:1.6rem;color:var(--moon)}
+.idea p{color:#C9D1E3;max-width:68ch}
+.idea ul{margin:8px 0 0;padding-left:18px;color:#C9D1E3}
+.idea li{margin:4px 0}
+.mono{font-family:var(--mono);font-size:.82rem}
+.formula{background:#060A13;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:.8rem;color:#C9D1E3;white-space:pre}
+
+/* lab */
+.field{display:grid;gap:6px}
+.field label{font-size:.8rem;color:var(--muted)}
+.field input,.field select{font:500 1rem var(--body);color:var(--text);background:#060A13;border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.field input[type=range]{padding:0;accent-color:var(--moon);background:transparent;border:0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.out{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.out div{background:#060A13;border:1px solid var(--line);border-radius:12px;padding:12px}
+.out b{display:block;font-family:var(--display);font-size:1.25rem}
+.out span{font-size:.75rem;color:var(--muted)}
+.verdict{border-left:3px solid var(--moon);padding:4px 0 4px 12px;color:#C9D1E3;font-size:.92rem}
+.pvt{aspect-ratio:1/1;max-height:260px;width:100%;border-radius:16px;border:1px solid var(--line);background:#060A13;display:grid;place-items:center;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;font:600 1rem var(--body);color:var(--muted);text-align:center;padding:16px}
+.pvt.go{background:radial-gradient(circle,var(--moon) 0 34%,#060A13 35%);color:var(--ink)}
+.pvt.early{border-color:var(--danger);color:var(--danger)}
+.rts{display:flex;gap:6px;flex-wrap:wrap;font-family:var(--mono);font-size:.78rem}
+.rts span{border:1px solid var(--line);border-radius:8px;padding:3px 8px}
+
+/* review */
+.rev{display:grid;gap:12px}
+.ritem{display:grid;grid-template-columns:120px 1fr;gap:14px;background:var(--deep);border:1px solid var(--line);border-radius:14px;padding:16px;border-left-width:4px}
+.ritem.fix{border-left-color:var(--danger)}
+.ritem.up{border-left-color:var(--moon)}
+.ritem.good{border-left-color:var(--ok)}
+.ritem .tag{font:600 .72rem var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.ritem.fix .tag{color:var(--danger)}
+.ritem.up .tag{color:var(--moon)}
+.ritem.good .tag{color:var(--ok)}
+.ritem p{color:#C9D1E3;font-size:.94rem}
+.ritem p b{color:var(--text)}
+
+.refs{display:grid;gap:10px;padding-left:20px;margin:0;color:#C9D1E3;font-size:.9rem}
+footer{padding:36px 0 60px;color:var(--muted);font-size:.85rem}
+footer .wrap{display:grid;gap:8px}
+
+@media (max-width:860px){
+  .grid3{grid-template-columns:1fr}
+  .idea-hero{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2{grid-template-columns:1fr}
+  .ritem{grid-template-columns:1fr;gap:6px}
+  .idea{grid-template-columns:1fr;gap:6px}
+  .screen{aspect-ratio:4/5}
+  .drow,.axis{grid-template-columns:92px 1fr 40px}
+  .hbar{grid-template-columns:104px 1fr 30px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Бөлімдер">
+  <div class="wrap">
+    <span class="brand">ТҮН · ЭКРАН · БАҒА</span>
+    <a href="#kino">3D видео</a>
+    <a href="#derek">Деректер</a>
+    <a href="#ideya">Жаңа идея</a>
+    <a href="#zerthana">Зертхана</a>
+    <a href="#saraptama">Сараптама</a>
+    <a href="#sources">Дереккөздер</a>
+  </div>
+</nav>
+
+<header class="hero" id="basty">
+  <canvas id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Республикалық ғылыми жобалар байқауы · Медицина және денсаулық сақтау · Алматы 2026</div>
+    <h1>Түн кімге тиесілі: <span class="a">ұйқыға</span> ма, <span class="b">экранға</span> ма?</h1>
+    <p class="lead">«Ұйқы ұзақтығының, экран уақытының және оқу үлгерімінің өзара байланысы» жобасының интерактивті нұсқасы. 96 оқушының деректері, алты 3D түсіндірме, жобаның өз сандарынан шыққан жаңа нәтиже және өзіңді тексеретін зертхана.</p>
+    <div class="stats">
+      <div class="stat"><b class="num">6:42</b><span>жұмыс күндегі орташа ұйқы (норма 8–10 сағ)</span></div>
+      <div class="stat"><b class="num">r = 0,41</b><span>ұйқы ↔ GPA, оң байланыс</span></div>
+      <div class="stat"><b class="num">r = −0,37</b><span>экран ↔ GPA, теріс байланыс</span></div>
+      <div class="stat new"><b class="num">≈ 29%</b><span>экран әсерінің ұйқы арқылы өтетін үлесі · жаңа есеп</span></div>
+    </div>
+    <div class="cta">
+      <a class="btn" href="#kino">▶ 3D видеоны көру</a>
+      <a class="btn ghost" href="#ideya">Жаңа идея</a>
+    </div>
+  </div>
+</header>
+
+<section id="kino">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">01 · 3D видео-түсіндірмелер</div>
+      <h2>Алты эпизод: мидан бастап медиацияға дейін</h2>
+      <p>Әр эпизод шамамен 22 секунд, барлығы бірінен соң бірі ойнайды. Саусақпен немесе тінтуірмен сахнаны айналдыруға болады. «Дауыс» батырмасы құрылғыда қазақ тіліндегі дауыс болса, субтитрді оқып береді.</p>
+    </div>
+    <div class="cinema">
+      <div class="screen" id="screen">
+        <canvas id="cineCanvas" aria-label="3D анимация"></canvas>
+        <div class="ep-title"><span class="k" id="epK">01/06</span><span class="t" id="epT">Ұйқы — мидың түнгі сақтау зауыты</span></div>
+        <button class="bigplay" id="bigPlay" aria-label="Ойнату">▶</button>
+        <div class="caption" id="caption" aria-live="polite">Ойнату батырмасын басыңыз.</div>
+      </div>
+      <div class="controls">
+        <button class="ctl" id="playBtn" aria-label="Ойнату немесе тоқтату">▶ Ойнату</button>
+        <div class="segs" id="segs"></div>
+        <span class="time" id="timeLbl">0:00</span>
+        <button class="ctl" id="voiceBtn" aria-pressed="false">Дауыс</button>
+        <button class="ctl" id="fsBtn">Толық экран</button>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <p class="note" id="voiceNote"></p>
+  </div>
+</section>
+
+<section id="derek">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">02 · Деректер</div>
+      <h2>96 оқушы не айтты</h2>
+      <p>Алматыдағы мектептің 11-сынып оқушылары (52 қыз, 44 ұл). Нүкте — топтың орташа GPA-сы (4 балдық шкала), сызық 2,6-дан басталады. Оң жақта — топтағы оқушы саны.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Ұйқы ұзақтығы бойынша GPA</h3>
+        <div class="dots" id="dotsSleep"></div>
+        <div class="axis"><span></span><div class="ticks"><span>2,6</span><span>3,0</span><span>3,4</span><span>3,8</span></div><span></span></div>
+      </div>
+      <div class="card">
+        <h3>Экран уақыты бойынша GPA</h3>
+        <div class="dots" id="dotsScreen"></div>
+        <div class="axis"><span></span><div class="ticks"><span>2,6</span><span>3,0</span><span>3,4</span><span>3,8</span></div><span></span></div>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card rtile">
+        <span class="sub">Ұйқы ↔ GPA</span>
+        <span class="r num" style="color:var(--moon)">0,41</span>
+        <div class="meter"><i style="left:50%;width:20.5%;background:var(--moon)"></i></div>
+        <span class="sub">Орташа оң байланыс · p &lt; 0,05</span>
+      </div>
+      <div class="card rtile">
+        <span class="sub">Экран ↔ GPA</span>
+        <span class="r num" style="color:var(--blue)">−0,37</span>
+        <div class="meter"><i style="left:31.5%;width:18.5%;background:var(--blue)"></i></div>
+        <span class="sub">Ойын-сауық экраны: −0,44 · оқу экраны: −0,08 (маңызсыз)</span>
+      </div>
+      <div class="card rtile">
+        <span class="sub">Экран ↔ Ұйқы</span>
+        <span class="r num" style="color:var(--danger)">−0,33</span>
+        <div class="meter"><i style="left:33.5%;width:16.5%;background:var(--danger)"></i></div>
+        <span class="sub">Экран көп болса, ұйқы қысқа · «жабық шеңбер»</span>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Ұйықтар алдындағы экран және ұйқы сапасы (5 балдық өзіндік баға)</h3>
+      <div class="hbar"><span>Қолданбайды / сирек</span><div class="bar" style="width:82%"></div><span class="mono">4,1</span></div>
+      <div class="hbar"><span>Аптасына 3–4 рет</span><div class="bar" style="width:68%"></div><span class="mono">3,4</span></div>
+      <div class="hbar"><span>Күн сайын</span><div class="bar" style="width:54%"></div><span class="mono">2,7</span></div>
+      <p class="sub">Күнделікті кешкі экран ұйқы сапасын 1,4 баллға төмендетеді. Бұл айырмашылық шкаланың төрттен бір бөлігінен асады.</p>
+    </div>
+  </div>
+</section>
+
+<section id="ideya">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">03 · Жас зерттеушінің жаңа идеясы</div>
+      <h2>Корреляциядан механизмге: «Цифрлық күн батуы»</h2>
+      <p>Жоба «не байланысты?» деген сұраққа жауап берді. Келесі қадам — «қалай әсер етеді?» және «өзгертсек не болады?» сұрақтары. Төмендегі үш идея жобаны жергілікті сауалнамадан ғылыми тәжірибеге көтереді.</p>
+    </div>
+
+    <div class="idea-hero card" style="margin-bottom:16px">
+      <div style="display:grid;gap:10px">
+        <h3>Жобаның өз сандарынан жаңа нәтиже</h3>
+        <p style="color:#C9D1E3">Үш корреляцияны (0,41; −0,37; −0,33) біріктіріп, медиация моделін есептедік. Экранның үлгерімге әсерінің шамамен <b style="color:var(--moon)">29%-ы ұйқы арқылы</b> өтеді: экран ұйқыны ұрлайды, ал ұйқы тапшылығы бағаны төмендетеді. Қалған 71% тікелей жолмен өтеді (зейіннің бөлшектенуі, оқуға кететін уақыттың азаюы).</p>
+        <p class="sub">Sobel z ≈ −2,38, p ≈ 0,02. Бір мезгілдегі сауалнама деректерінен алынған бағалау, себеп-салдарды дәлелдемейді.</p>
+      </div>
+      <svg class="flow" viewBox="0 0 420 260" role="img" aria-label="Медиация сызбасы: экран, ұйқы және GPA">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#97A3BC"/></marker>
+        </defs>
+        <line x1="92" y1="190" x2="190" y2="76" stroke="#FF7A6B" stroke-width="5" marker-end="url(#ah)"/>
+        <line x1="232" y1="76" x2="330" y2="190" stroke="#F2B655" stroke-width="5" marker-end="url(#ah)"/>
+        <line x1="104" y1="214" x2="316" y2="214" stroke="#4FC3F7" stroke-width="4" stroke-dasharray="6 5" marker-end="url(#ah)"/>
+        <circle cx="70" cy="214" r="34" fill="#0E1526" stroke="#4FC3F7" stroke-width="2"/>
+        <circle cx="211" cy="54" r="34" fill="#0E1526" stroke="#E9ECF4" stroke-width="2"/>
+        <circle cx="350" cy="214" r="34" fill="#0E1526" stroke="#F2B655" stroke-width="2"/>
+        <text x="70" y="219" text-anchor="middle" fill="#E9ECF4" font-family="Onest,sans-serif" font-size="14" font-weight="600">Экран</text>
+        <text x="211" y="59" text-anchor="middle" fill="#E9ECF4" font-family="Onest,sans-serif" font-size="14" font-weight="600">Ұйқы</text>
+        <text x="350" y="219" text-anchor="middle" fill="#E9ECF4" font-family="Onest,sans-serif" font-size="14" font-weight="600">GPA</text>
+        <text x="128" y="118" text-anchor="end" fill="#FF7A6B" font-family="JetBrains Mono,monospace" font-size="13">a = −0,33</text>
+        <text x="292" y="118" fill="#F2B655" font-family="JetBrains Mono,monospace" font-size="13">b = 0,32</text>
+        <text x="210" y="246" text-anchor="middle" fill="#4FC3F7" font-family="JetBrains Mono,monospace" font-size="13">c′ = −0,26 (тікелей)</text>
+        <text x="211" y="160" text-anchor="middle" fill="#F2B655" font-family="Unbounded,sans-serif" font-size="22" font-weight="700">a·b ≈ −0,11</text>
+        <text x="211" y="180" text-anchor="middle" fill="#97A3BC" font-family="Onest,sans-serif" font-size="12">жалпы әсердің (−0,37) ≈ 29%-ы</text>
+      </svg>
+    </div>
+
+    <div class="idea-list">
+      <div class="idea">
+        <div class="n">1</div>
+        <div>
+          <h3>Медиация және жеке әсер: қай фактор маңыздырақ?</h3>
+          <p>Ұйқы мен экран бір-бірімен байланысты болғандықтан, олардың «таза» әсерін бөлу керек. Жобаның сандарынан есептелген ішінара корреляциялар екеуі де маңызды екенін көрсетеді.</p>
+          <ul>
+            <li>Ұйқы ↔ GPA, экранды бақылағанда: <b class="mono">r = 0,33</b> (p ≈ 0,001)</li>
+            <li>Экран ↔ GPA, ұйқыны бақылағанда: <b class="mono">r = −0,27</b> (p ≈ 0,007)</li>
+            <li>Екеуі бірге GPA айырмашылығының <b class="mono">≈ 23%</b> бөлігін түсіндіреді (R²)</li>
+          </ul>
+          <div class="formula" style="margin-top:10px">b  = (r_ұГ − r_эГ·r_эұ) / (1 − r_эұ²) = (0,41 − 0,122) / 0,891 = 0,32
+c′ = (r_эГ − r_ұГ·r_эұ) / (1 − r_эұ²) = (−0,37 + 0,135) / 0,891 = −0,26
+a·b = (−0,33)(0,32) = −0,107  →  0,107 / 0,37 ≈ 29%</div>
+        </div>
+      </div>
+      <div class="idea">
+        <div class="n">2</div>
+        <div>
+          <h3>Ұйқы қарызы және «әлеуметтік джетлаг»</h3>
+          <p>Жұмыс күні 6 сағ 42 мин, демалыста 8 сағ 15 мин. 8 сағаттық ең төменгі нормамен есептегенде, оқушы аптасына шамамен <b>6 сағат</b> ұйқы жоғалтады, яғни бір толық түн. Демалыстағы ұзақ ұйқы бұл қарызды жаппайды, керісінше ұйқы ырғағын кейін ығыстырады. Ғалымдар жұмыс күні мен демалыстағы ұйқы ортасының айырмасын «әлеуметтік джетлаг» деп атайды: дүйсенбіде ағза басқа сағаттық белдеуден ұшып келгендей күйде болады.</p>
+          <ul>
+            <li>Сауалнамада ұйықтау/ояну уақыты бар (2–3 сұрақтар), сондықтан әр оқушының джетлагын қосымша сұрақсыз есептеуге болады.</li>
+            <li>Гипотеза: джетлагы 2 сағаттан асатын оқушылардың дүйсенбідегі бағасы төмен.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="idea">
+        <div class="n">3</div>
+        <div>
+          <h3>14 күндік «Цифрлық күн батуы» тәжірибесі</h3>
+          <p>Корреляцияны себеп-салдарға айналдырудың жолы — тәжірибе. Сол оқушылар 7 күн әдеттегідей өмір сүреді, келесі 7 күн ұйқыдан 60 минут бұрын экранды сөндіреді (телефон бөлмеден тыс зарядталады). Әр оқушы өзіне-өзі бақылау тобы болады, сондықтан отбасы мен қабілет айырмашылықтары нәтижені бұрмаламайды.</p>
+          <ul>
+            <li><b>Ұйқы:</b> телефондағы немесе сағаттағы ұйқы трекері, күнделік.</li>
+            <li><b>Зейін:</b> күн сайын таңертең 1 минуттық реакция тесті (төмендегі зертханада бар).</li>
+            <li><b>Оқу:</b> әр аптаның соңында бірдей күрделіліктегі 10 сұрақтық квиз.</li>
+            <li><b>Талдау:</b> жұптасқан t-тест немесе Уилкоксон критерийі, әсер мөлшері (Cohen d).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="zerthana">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">04 · Зертхана</div>
+      <h2>Өзіңді тексер</h2>
+      <p>Калькулятор жоба деректеріне сүйеніп, сенің қай топқа жататыныңды көрсетеді. Реакция тесті «Цифрлық күн батуы» тәжірибесіндегі зейін өлшемі ретінде қолданылады. Мәліметтер ешқайда жіберілмейді.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Ұйқы қарызының калькуляторы</h3>
+        <div class="pair">
+          <div class="field"><label for="wdBed">Жұмыс күні: ұйықтаймын</label><input id="wdBed" type="time" value="23:50"></div>
+          <div class="field"><label for="wdWake">Жұмыс күні: тұрамын</label><input id="wdWake" type="time" value="06:35"></div>
+        </div>
+        <div class="pair">
+          <div class="field"><label for="weBed">Демалыс: ұйықтаймын</label><input id="weBed" type="time" value="01:00"></div>
+          <div class="field"><label for="weWake">Демалыс: тұрамын</label><input id="weWake" type="time" value="09:15"></div>
+        </div>
+        <div class="field"><label for="scr">Күніне экран уақыты: <b id="scrV" class="num">5</b> сағ</label><input id="scr" type="range" min="0" max="10" step="0.5" value="5"></div>
+        <div class="field"><label for="pre">Ұйықтар алдындағы 1 сағатта экран</label>
+          <select id="pre"><option value="0">Қолданбаймын / сирек</option><option value="1">Аптасына 3–4 рет</option><option value="2" selected>Күн сайын</option></select>
+        </div>
+        <div class="out">
+          <div><b class="num" id="oDur">—</b><span>жұмыс күнгі ұйқы</span></div>
+          <div><b class="num" id="oDebt">—</b><span>апталық ұйқы қарызы (8 сағ нормасымен)</span></div>
+          <div><b class="num" id="oJet">—</b><span>әлеуметтік джетлаг</span></div>
+          <div><b class="num" id="oQ">—</b><span>жобадағы ұқсас топтың ұйқы сапасы /5</span></div>
+        </div>
+        <p class="verdict" id="oVerdict"></p>
+      </div>
+      <div class="card">
+        <h3>Зейін тесті (реакция уақыты)</h3>
+        <p class="sub">Шеңберді басыңыз. Күтіңіз. Сарғыш нүкте пайда болғанда мүмкіндігінше тез басыңыз. 5 әрекет.</p>
+        <div class="pvt" id="pvt" role="button" tabindex="0" aria-live="polite">Бастау үшін басыңыз</div>
+        <div class="rts" id="rts"></div>
+        <p class="verdict" id="pvtRes">Тестті ұйқысы қанған күні және аз ұйықтаған күні жасап, нәтижені салыстырыңыз. Айырмашылық — ұйқы тапшылығының зейінге әсері.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="saraptama">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">05 · Ғылыми сараптама</div>
+      <h2>Қазылар сұрағанға дейін түзетілетін жерлер</h2>
+      <p>Жобаны қазылар алқасы оқитындай тексердік: сандар, тұжырымдар, дереккөздер. Түзету оңай, бірақ жұмыстың сенімділігін айтарлықтай арттырады.</p>
+    </div>
+    <div class="rev">
+      <div class="ritem good"><span class="tag">Күшті жақ</span><p><b>Экран түрлерін бөлу.</b> Ойын-сауық экраны (r = −0,44) мен оқу экранын (r = −0,08) бөлек талдау — жобаның ең құнды тұсы. Бұл 58 зерттеуді біріктірген JAMA Pediatrics мета-талдауының қорытындысымен сәйкес келеді: жалпы экран уақыты емес, теледидар мен видеоойындар үлгеріммен теріс байланысты.</p></div>
+      <div class="ritem fix"><span class="tag">Түзету</span><p><b>Орташа GPA екі кестеде әртүрлі.</b> 1-кесте бойынша жалпы орташа GPA = 3,21, 2-кесте бойынша = 3,16. Бір 96 оқушы болса, екеуі бірдей шығуы керек. Бастапқы кестені қайта тексеріп, бір мәнге келтіру керек.</p></div>
+      <div class="ritem fix"><span class="tag">Түзету</span><p><b>14 / 96 = 14,6%,</b> 14,5% емес (дөңгелектеу). Бағандағы пайыздар қосындысы да 100,0 болуы үшін 24,0 + 36,5 + 25,0 + 14,6 = 100,1 екенін ескертпеде жазуға болады.</p></div>
+      <div class="ritem fix"><span class="tag">Түзету</span><p><b>«Гипотеза толық расталды» деген тұжырым тым күшті.</b> Корреляция себепті дәлелдемейді, ал гипотезадағы «3 сағат» шегі тексерілмеген: экран топтары 2–4 сағат болып бөлінген. «Деректер гипотезаны қолдайды» деп жазу дұрысырақ.</p></div>
+      <div class="ritem fix"><span class="tag">Түзету</span><p><b>12-дереккөз (Chinapaw, 2020) табылмады.</b> Оның орнына Adelantado-Renau және т.б., JAMA Pediatrics, 2019 мета-талдауын келтіруді ұсынамыз. Сондай-ақ 8–10 сағат нормасы ДДҰ-ға емес, Америкалық ұйқы медицинасы академиясына (AASM, 2016) және Ұлттық ұйқы қорына тиесілі.</p></div>
+      <div class="ritem up"><span class="tag">Күшейту</span><p><b>3-кестеге топ көлемі мен статистикалық тест қосу</b> (мысалы, Краскел–Уоллис немесе ANOVA). Әр топта неше оқушы бар екені көрсетілмеген.</p></div>
+      <div class="ritem up"><span class="tag">Күшейту</span><p><b>Ұлдар мен қыздар айырмашылығына тест.</b> «50 минутқа жоғары» деген тұжырымға t-тест пен p мәні керек. Сонымен қатар 1.1 бөлімдегі «ұйқы — жүйке жүйесінің тыныс алуы» тіркесін «жүйке жүйесінің қалпына келуі» деп түзеткен жөн.</p></div>
+      <div class="ritem up"><span class="tag">Күшейту</span><p><b>Медиация мен ішінара корреляцияны қосу</b> (жоғарыдағы 1-идея). Бұл қазір жобада тек сөзбен айтылған «жабық шеңберге» сандық дәлел береді.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">06 · Дереккөздер</div>
+      <h2>Тексерілген әдебиет</h2>
+    </div>
+    <ol class="refs">
+      <li>Adelantado-Renau M. et al. Association between screen media use and academic performance among children and adolescents: a systematic review and meta-analysis // JAMA Pediatrics. 2019;173(11):1058–1067. <a href="https://doi.org/10.1001/jamapediatrics.2019.3176">doi:10.1001/jamapediatrics.2019.3176</a></li>
+      <li>Paruthi S. et al. Recommended amount of sleep for pediatric populations: AASM consensus statement // J Clin Sleep Med. 2016;12(6):785–786. <a href="https://doi.org/10.5664/jcsm.5866">doi:10.5664/jcsm.5866</a></li>
+      <li>Hirshkowitz M. et al. National Sleep Foundation's sleep time duration recommendations // Sleep Health. 2015;1(1):40–43. <a href="https://doi.org/10.1016/j.sleh.2014.12.010">doi:10.1016/j.sleh.2014.12.010</a></li>
+      <li>Carskadon M.A. Sleep in adolescents: the perfect storm // Pediatr Clin North Am. 2011;58(3):637–647. <a href="https://doi.org/10.1016/j.pcl.2011.03.003">doi:10.1016/j.pcl.2011.03.003</a></li>
+      <li>Hale L., Guan S. Screen time and sleep among school-aged children and adolescents: a systematic literature review // Sleep Med Rev. 2015;21:50–58. <a href="https://doi.org/10.1016/j.smrv.2014.07.007">doi:10.1016/j.smrv.2014.07.007</a></li>
+      <li>Cain N., Gradisar M. Electronic media use and sleep in school-aged children and adolescents: a review // Sleep Med. 2010;11(8):735–742. <a href="https://doi.org/10.1016/j.sleep.2010.02.006">doi:10.1016/j.sleep.2010.02.006</a></li>
+      <li>Owens J. Insufficient sleep in adolescents and young adults: an update on causes and consequences // Pediatrics. 2014;134(3):e921–e932. <a href="https://doi.org/10.1542/peds.2014-1696">doi:10.1542/peds.2014-1696</a></li>
+      <li>Wittmann M. et al. Social jetlag: misalignment of biological and social time // Chronobiol Int. 2006;23(1–2):497–509. <a href="https://doi.org/10.1080/07420520500545979">doi:10.1080/07420520500545979</a></li>
+      <li>Twenge J.M., Campbell W.K. Associations between screen time and lower psychological well-being among children and adolescents // Prev Med Rep. 2018;12:271–283. <a href="https://doi.org/10.1016/j.pmedr.2018.10.003">doi:10.1016/j.pmedr.2018.10.003</a></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>«Ұйқы ұзақтығының, экран уақытының және оқу үлгерімінің өзара байланысы» ғылыми жобасы · 11-сынып · Алматы, 2026</span>
+    <span>Медиация, ішінара корреляция және ұйқы қарызы жоба деректерінен есептелген бағалаулар. Калькулятор мен тест медициналық диагноз емес.</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+const AMBER=0xF2B655, CYAN=0x4FC3F7, RED=0xFF7A6B, WHITE=0xE9ECF4, GREEN=0x7BE0B0;
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
+const fmt=n=>String(n).replace('.',',');
+
+/* ---------- data charts ---------- */
+const sleepG=[["6 сағаттан аз",23,2.86],["6–7 сағат",35,3.12],["7–8 сағат",24,3.41],["8 сағаттан көп",14,3.68]];
+const scrG=[["2 сағаттан аз",9,3.71],["2–4 сағат",31,3.38],["4–6 сағат",34,3.05],["6 сағаттан көп",22,2.79]];
+function dots(el,arr,col){
+  const lo=2.6,hi=3.8;
+  el.innerHTML=arr.map(([l,n,g])=>{const x=(g-lo)/(hi-lo)*100;
+    return `<div class="drow"><span class="lbl">${l}<small>${n} оқушы</small></span><div class="track"><i class="stem" style="width:${x}%;background:${col};opacity:.45"></i><i class="dot" style="left:${x}%;background:${col};box-shadow:0 0 12px ${col}"></i></div><span class="v">${fmt(g.toFixed(2))}</span></div>`}).join('');
+}
+dots(document.getElementById('dotsSleep'),sleepG,'#F2B655');
+dots(document.getElementById('dotsScreen'),scrG,'#4FC3F7');
+
+/* ---------- calculator ---------- */
+const $=id=>document.getElementById(id);
+const toMin=v=>{const [h,m]=v.split(':').map(Number);return h*60+m};
+const dur=(b,w)=>((w-b)%1440+1440)%1440;
+const hm=m=>{m=Math.round(m);const s=m<0?'−':'';m=Math.abs(m);return s+Math.floor(m/60)+' сағ '+String(m%60).padStart(2,'0')+' мин'};
+function calc(){
+  const b1=toMin($('wdBed').value||'23:00'),w1=toMin($('wdWake').value||'07:00'),b2=toMin($('weBed').value||'23:00'),w2=toMin($('weWake').value||'08:00');
+  const d1=dur(b1,w1),d2=dur(b2,w2);
+  const debt=5*(480-d1)-2*Math.max(0,d2-480);
+  const m1=(b1+d1/2)%1440,m2=(b2+d2/2)%1440;let j=Math.abs(m2-m1);if(j>720)j=1440-j;
+  const s=+$('scr').value;$('scrV').textContent=fmt(s);
+  const pre=+$('pre').value;
+  $('oDur').textContent=hm(d1);
+  $('oDebt').textContent=debt>0?hm(debt):'жоқ';
+  $('oJet').textContent=hm(j);
+  $('oQ').textContent=['4,1','3,4','2,7'][pre];
+  const h=d1/60;
+  const sg=h<6?0:h<7?1:h<8?2:3, cg=s<2?0:s<4?1:s<6?2:3;
+  let v=`Жобада ұйқысы «${sleepG[sg][0]}» тобындағылардың орташа GPA-сы ${fmt(sleepG[sg][2].toFixed(2))}, экраны «${scrG[cg][0]}» тобындағыларда ${fmt(scrG[cg][2].toFixed(2))}. `;
+  if(h<8&&pre===2) v+='Ең жылдам өзгеріс: ұйқыдан 60 минут бұрын экранды сөндіру. Бұл ұйқыға кетуді тездетіп, жұмыс күнгі ұйқыны ұзартады.';
+  else if(h<8) v+='Ұйқыға 15 минуттан ерте жатуды бастаңыз, бір аптада 8 сағатқа жетуге болады.';
+  else if(s>=4) v+='Ұйқы жақсы. Келесі мақсат — ойын-сауық экранын күніне 2–3 сағатқа дейін қысқарту.';
+  else v+='Ұйқы мен экран тепе-теңдігі жоба ұсынымдарына сай.';
+  if(j>=120) v+=' Демалыстағы ығысу 2 сағаттан асады: дүйсенбі сайын «джетлаг» күйі болуы мүмкін.';
+  $('oVerdict').textContent=v;
+}
+['wdBed','wdWake','weBed','weWake','scr','pre'].forEach(id=>$(id).addEventListener('input',calc));
+calc();
+
+/* ---------- reaction test ---------- */
+const pvt=$('pvt');let st='idle',tmr=null,t0=0,rts=[];
+function pvtClick(){
+  if(st==='idle'||st==='done'){rts=st==='done'?[]:rts;if(st==='done')$('rts').innerHTML='';arm();return}
+  if(st==='wait'){clearTimeout(tmr);pvt.classList.add('early');pvt.textContent='Ерте бастыңыз. Қайта көріңіз.';st='idle';return}
+  if(st==='go'){const rt=performance.now()-t0;rts.push(rt);pvt.classList.remove('go');
+    $('rts').insertAdjacentHTML('beforeend',`<span>${Math.round(rt)} мс</span>`);
+    if(rts.length>=5){const m=rts.reduce((a,b)=>a+b,0)/rts.length;st='done';
+      pvt.textContent='Орташа: '+Math.round(m)+' мс · қайта бастау';
+      let best=null;try{best=+localStorage.getItem('pvtBest')||null;if(!best||m<best)localStorage.setItem('pvtBest',String(Math.round(m)))}catch(e){}
+      $('pvtRes').textContent='Орташа реакция уақыты '+Math.round(m)+' мс.'+(best?' Бұрынғы ең жақсы нәтиже: '+best+' мс.':'')+' Ұйқы тапшылығы кезінде реакция баяулап, «өткізіп алулар» көбейеді. Тестті бірдей уақытта, мысалы таңертең, қайталаңыз.';
+    } else arm();}
+}
+function arm(){pvt.classList.remove('early','go');st='wait';pvt.textContent='Күтіңіз…';
+  tmr=setTimeout(()=>{st='go';pvt.classList.add('go');pvt.textContent='';t0=performance.now()},1800+Math.random()*3000)}
+pvt.addEventListener('pointerdown',e=>{e.preventDefault();pvtClick()});
+pvt.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();pvtClick()}});
+
+/* ---------- 3D ---------- */
+if(typeof THREE==='undefined'){ $('caption').textContent='3D кітапхана жүктелмеді. Интернет байланысын тексеріп, бетті қайта ашыңыз.'; $('bigPlay').hidden=true; return; }
+
+function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)}
+const GLOW=glowTex();
+
+/* hero */
+(function hero(){
+  const cv=$('heroCanvas');const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  r.setPixelRatio(Math.min(2,devicePixelRatio||1));
+  const sc=new THREE.Scene();const cam=new THREE.PerspectiveCamera(50,1,.1,100);cam.position.set(0,0,9);
+  const N=2600,pos=new Float32Array(N*3),col=new Float32Array(N*3);const ca=new THREE.Color(AMBER),cb=new THREE.Color(CYAN),c=new THREE.Color();
+  for(let i=0;i<N;i++){const u=Math.random()*2-1,th=Math.random()*Math.PI*2,rr=2.6+(Math.random()-.5)*.18;const s=Math.sqrt(1-u*u);
+    const x=s*Math.cos(th)*rr,y=u*rr,z=s*Math.sin(th)*rr;pos.set([x,y,z],i*3);
+    const k=clamp((x/rr+1)/2+(Math.random()-.5)*.35);c.copy(ca).lerp(cb,k);col.set([c.r,c.g,c.b],i*3)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const m=new THREE.PointsMaterial({size:.07,map:GLOW,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+  const sphere=new THREE.Points(g,m);const grp=new THREE.Group();grp.add(sphere);sc.add(grp);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(3.6,.01,8,200),new THREE.MeshBasicMaterial({color:AMBER,transparent:true,opacity:.35}));ring.rotation.x=1.2;grp.add(ring);
+  const sN=600,sp=new Float32Array(sN*3);for(let i=0;i<sN;i++)sp.set([(Math.random()-.5)*40,(Math.random()-.5)*24,-Math.random()*20-4],i*3);
+  const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  sc.add(new THREE.Points(sg,new THREE.PointsMaterial({size:.06,color:0x9fb0d0,transparent:true,opacity:.6})));
+  let mx=0,my=0;window.addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
+  function size(){const w=cv.clientWidth,h=cv.clientHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
+    grp.position.x=w>860?3.2:0;grp.position.y=w>860?0:1.2;grp.scale.setScalar(w>860?1:.8)}
+  size();addEventListener('resize',size);
+  let vis=true;new IntersectionObserver(e=>{vis=e[0].isIntersecting}).observe(cv);
+  const clk=new THREE.Clock();
+  (function loop(){requestAnimationFrame(loop);if(!vis)return;const t=clk.getElapsedTime();
+    sphere.rotation.y=reduce?0:t*.12;ring.rotation.z=t*.05;grp.rotation.x=my*.3;grp.rotation.y=mx*.4;r.render(sc,cam)})();
+})();
+
+/* cinema */
+const cv=$('cineCanvas');
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio||1));R.setClearColor(0x03060D);
+const S=new THREE.Scene();S.fog=new THREE.Fog(0x03060D,14,34);
+const C=new THREE.PerspectiveCamera(48,16/9,.1,100);
+S.add(new THREE.AmbientLight(0x8899bb,.55));const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(4,8,6);S.add(dl);
+const pl=new THREE.PointLight(AMBER,1.2,20);pl.position.set(-3,3,4);S.add(pl);
+(function stars(){const n=900,p=new Float32Array(n*3);for(let i=0;i<n;i++){const u=Math.random()*2-1,t=Math.random()*6.283,r=18+Math.random()*10,s=Math.sqrt(1-u*u);p.set([s*Math.cos(t)*r,u*r,s*Math.sin(t)*r],i*3)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));S.add(new THREE.Points(g,new THREE.PointsMaterial({size:.08,color:0x8fa2c8,transparent:true,opacity:.7})))})();
+
+function label(text,o={}){
+  const color=o.color||'#E9ECF4',size=o.size||.42,fs=64,weight=o.weight||600;
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  const font=`${weight} ${fs}px Onest, system-ui, sans-serif`;x.font=font;
+  const lines=String(text).split('\n');const w=Math.ceil(Math.max(...lines.map(l=>x.measureText(l).width))+40);const lh=fs*1.2,h=Math.ceil(lines.length*lh+24);
+  c.width=w;c.height=h;x.font=font;
+  if(o.bg){x.fillStyle=o.bg;const r=22;x.beginPath();x.moveTo(r,0);x.lineTo(w-r,0);x.quadraticCurveTo(w,0,w,r);x.lineTo(w,h-r);x.quadraticCurveTo(w,h,w-r,h);x.lineTo(r,h);x.quadraticCurveTo(0,h,0,h-r);x.lineTo(0,r);x.quadraticCurveTo(0,0,r,0);x.fill()}
+  x.fillStyle=color;x.textBaseline='middle';x.textAlign='center';lines.forEach((l,i)=>x.fillText(l,w/2,12+lh*(i+.5)));
+  const tex=new THREE.CanvasTexture(c);tex.minFilter=THREE.LinearFilter;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
+  const sy=size*lines.length*1.2+size*.4;sp.scale.set(sy*w/h,sy,1);sp.renderOrder=10;
+  sp.setText=function(t){x.clearRect(0,0,w,h);x.font=font;if(o.bg){x.fillStyle=o.bg;x.fillRect(0,0,w,h)}x.fillStyle=color;x.fillText(t,w/2,h/2);tex.needsUpdate=true};
+  return sp;
+}
+function win(sp,a,b,p){const f=.04;sp.material.opacity=clamp((p-a)/f)*clamp((b-p)/f);sp.visible=sp.material.opacity>.01}
+function glow(color,s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.scale.setScalar(s);return sp}
+function pts(n,color,size){const g=new THREE.BufferGeometry();const p=new Float32Array(n*3),c=new Float32Array(n*3);g.setAttribute('position',new THREE.BufferAttribute(p,3));g.setAttribute('color',new THREE.BufferAttribute(c,3));
+  const col=new THREE.Color(color);for(let i=0;i<n;i++)c.set([col.r,col.g,col.b],i*3);
+  return new THREE.Points(g,new THREE.PointsMaterial({size,map:GLOW,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}))}
+let orbit={yaw:0,pitch:0};
+function camOrbit(r,yaw,h,ty=0){const a=yaw+orbit.yaw,pp=orbit.pitch;C.position.set(Math.sin(a)*r*Math.cos(pp),h+Math.sin(pp)*r,Math.cos(a)*r*Math.cos(pp));C.lookAt(0,ty,0)}
+
+const EP=[];
+
+/* E1 memory consolidation */
+EP.push({k:'Ми',title:'Ұйқы — мидың түнгі сақтау зауыты',caps:[
+ [0,'Күндіз ми мыңдаған ақпарат бөлшегін қабылдайды: формула, сөз, бет-әлпет.'],
+ [.28,'Терең ұйқы кезінде гиппокамп сол бөлшектерді қайта «ойнатады».'],
+ [.52,'Ақпарат ми қыртысына көшіп, ұзақ мерзімді жадқа жазылады. Бұл — жад консолидациясы.'],
+ [.8,'Ұйқы 6 сағаттан қысқа болса, бұл көшу толық аяқталмайды. Кешегі тақырып ұмытылады.']],
+ build(g){
+  const brain=new THREE.Mesh(new THREE.SphereGeometry(2,40,28),new THREE.MeshBasicMaterial({color:CYAN,wireframe:true,transparent:true,opacity:.1}));brain.scale.set(1.3,.95,1.05);g.add(brain);this.brain=brain;
+  const hip=glow(AMBER,1.4);hip.position.set(0,-.3,0);g.add(hip);this.hip=hip;
+  const N=320,P=pts(N,CYAN,.2);g.add(P);this.P=P;this.N=N;this.d=[];
+  for(let i=0;i<N;i++){const u=Math.random()*2-1,t=Math.random()*6.283,s=Math.sqrt(1-u*u),r=5+Math.random()*2.5;
+    const st=new THREE.Vector3(s*Math.cos(t)*r,u*r*.7,s*Math.sin(t)*r);
+    const mid=new THREE.Vector3((Math.random()-.5)*.5,-.3+(Math.random()-.5)*.4,(Math.random()-.5)*.5);
+    const u2=Math.random()*2-1,t2=Math.random()*6.283,s2=Math.sqrt(1-u2*u2);
+    const en=new THREE.Vector3(s2*Math.cos(t2)*2*1.3,u2*2*.95,s2*Math.sin(t2)*2*1.05);
+    this.d.push({st,mid,en,d1:Math.random()*.15,d2:Math.random()*.15})}
+  this.l1=label('Күндізгі ақпарат',{color:'#4FC3F7'});this.l1.position.set(0,3.4,0);g.add(this.l1);
+  this.l2=label('Гиппокамп',{color:'#F2B655'});this.l2.position.set(0,-1.3,0);g.add(this.l2);
+  this.l3=label('Ми қыртысы:\nұзақ мерзімді жад',{color:'#F2B655'});this.l3.position.set(0,3.1,0);g.add(this.l3);
+ },
+ update(p,t){
+  const a=this.P.geometry.attributes.position.array,c=this.P.geometry.attributes.color.array,cc=new THREE.Color(CYAN),ca=new THREE.Color(AMBER),tmp=new THREE.Vector3(),col=new THREE.Color();
+  for(let i=0;i<this.N;i++){const d=this.d[i];const s1=ease((p-.04-d.d1)/.28),s2=ease((p-.44-d.d2)/.3);
+    tmp.copy(d.st).lerp(d.mid,s1).lerp(d.en,s2);a[i*3]=tmp.x;a[i*3+1]=tmp.y;a[i*3+2]=tmp.z;col.copy(cc).lerp(ca,s2);c[i*3]=col.r;c[i*3+1]=col.g;c[i*3+2]=col.b}
+  this.P.geometry.attributes.position.needsUpdate=true;this.P.geometry.attributes.color.needsUpdate=true;
+  this.hip.scale.setScalar(1.2+Math.sin(t*4)*.15+(p>.3&&p<.7?.6:0));
+  this.brain.material.opacity=.08+.18*ease((p-.5)/.3);this.brain.rotation.y=t*.1;
+  win(this.l1,0,.32,p);win(this.l2,.22,.62,p);win(this.l3,.56,1.01,p);
+  camOrbit(9.5,t*.12,1.6);
+ }});
+
+/* E2 blue light */
+EP.push({k:'Жарық',title:'Көгілдір жарық мелатонинді қалай «өшіреді»',caps:[
+ [0,'Кешкі уақыт. Мелатонин, яғни «ұйқы гормоны», қанға шыға бастайды.'],
+ [.2,'Экранның көгілдір жарығы көздегі жарыққа сезімтал жасушаларға түседі.'],
+ [.42,'Ми әлі күндіз деп «ойлап», мелатонин өндірісін тежейді. Ұйқыға кету 30–60 минутқа кешігеді.'],
+ [.64,'Жобада: кешке күнде экран қолданатындардың ұйқы сапасы 2,7, қолданбайтындарда 4,1.'],
+ [.82,'Экран сөнгенде мелатонин қайта көбейеді. Ұйқыдан 1 сағат бұрын — «цифрлық күн батуы».']],
+ build(g){
+  const ph=new THREE.Group();ph.position.set(-2.8,0,0);ph.rotation.y=.55;g.add(ph);
+  ph.add(new THREE.Mesh(new THREE.BoxGeometry(1.1,2.1,.1),new THREE.MeshStandardMaterial({color:0x1a2236,metalness:.6,roughness:.3})));
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(.98,1.95),new THREE.MeshBasicMaterial({color:CYAN}));scr.position.z=.051;ph.add(scr);this.scr=scr;
+  const halo=glow(CYAN,4);halo.position.set(-2.6,0,.3);g.add(halo);this.halo=halo;
+  const head=new THREE.Mesh(new THREE.SphereGeometry(1.7,32,22),new THREE.MeshBasicMaterial({color:WHITE,wireframe:true,transparent:true,opacity:.07}));head.position.set(2.6,.2,0);g.add(head);this.head=head;
+  const pin=glow(AMBER,.9);pin.position.set(2.6,.2,0);g.add(pin);this.pin=pin;
+  this.R=pts(160,CYAN,.16);g.add(this.R);this.ro=[...Array(160)].map(()=>({o:Math.random(),y:(Math.random()-.5)*1.6,z:(Math.random()-.5)*1.2}));
+  this.M=pts(90,AMBER,.22);g.add(this.M);this.mo=[...Array(90)].map(()=>({r:.6+Math.random()*.8,a:Math.random()*6.28,b:Math.random()*6.28,s:.3+Math.random()*.6}));
+  this.level=1;
+  this.clock=label('21:30',{color:'#E9ECF4',size:.6,weight:700});this.clock.position.set(0,2.6,0);g.add(this.clock);
+  this.la=label('Экран: көгілдір жарық ≈ 480 нм',{color:'#4FC3F7',size:.32});this.la.position.set(-2.6,-1.75,0);g.add(this.la);
+  this.lb=label('Эпифиз: мелатонин',{color:'#F2B655',size:.32});this.lb.position.set(2.6,-1.75,0);g.add(this.lb);
+ },
+ update(p,t,dt){
+  const on=clamp((p-.16)/.05)*clamp((.78-p)/.05);
+  this.scr.material.color.setRGB(.06+.25*on,.1+.66*on,.15+.82*on);this.halo.material.opacity=on*.9;
+  const a=this.R.geometry.attributes.position.array;
+  for(let i=0;i<160;i++){const o=this.ro[i];const k=(t*.45+o.o)%1;a[i*3]=-2.4+k*4.8;a[i*3+1]=o.y*(1-k*.7)+.2*k;a[i*3+2]=o.z*(1-k)}
+  this.R.geometry.attributes.position.needsUpdate=true;this.R.material.opacity=on;
+  const target=on>.5?.15:1;this.level+=(target-this.level)*Math.min(1,dt*1.2);
+  const m=this.M.geometry.attributes.position.array;
+  for(let i=0;i<90;i++){const o=this.mo[i];const aa=o.a+t*o.s,bb=o.b+t*o.s*.7;m[i*3]=2.6+Math.cos(aa)*Math.sin(bb)*o.r;m[i*3+1]=.2+Math.cos(bb)*o.r;m[i*3+2]=Math.sin(aa)*Math.sin(bb)*o.r}
+  this.M.geometry.attributes.position.needsUpdate=true;this.M.geometry.setDrawRange(0,Math.floor(90*this.level));
+  this.pin.scale.setScalar(.5+this.level*.7);
+  const mins=21*60+30+p*210;const hh=Math.floor(mins/60)%24,mm=Math.floor(mins%60);const s=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  if(s!==this.last){this.clock.setText(s);this.last=s}
+  camOrbit(9,Math.sin(t*.2)*.35,1.2);
+ }});
+
+/* E3 3D data */
+EP.push({k:'Деректер',title:'96 оқушының деректері 3D кеңістікте',caps:[
+ [0,'96 оқушы, Алматы, 11-сынып. Әр баған — бір топтың орташа GPA-сы.'],
+ [.22,'Алдыңғы қатар — ұйқы. 6 сағаттан аз ұйықтайтындар: 2,86. 8 сағаттан көп: 3,68.'],
+ [.5,'Артқы қатар — экран уақыты. 2 сағаттан аз: 3,71. 6 сағаттан көп: 2,79.'],
+ [.78,'Ұйқы мен баға: r = 0,41. Экран мен баға: r = −0,37. Екеуі де p < 0,05.']],
+ build(g){
+  const grid=new THREE.GridHelper(14,14,0x22304A,0x16203a);g.add(grid);
+  this.bars=[];const mk=(arr,z,color,row)=>arr.forEach((d,i)=>{const h=(d[2]-2.4)*3;
+    const m=new THREE.Mesh(new THREE.BoxGeometry(1.2,1,1.2),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.25,roughness:.35,metalness:.2,transparent:true,opacity:.92}));
+    m.position.set(-3.6+i*2.4,0,z);g.add(m);
+    const v=label(fmt(d[2].toFixed(2)),{color:row?'#4FC3F7':'#F2B655',size:.38,weight:700});g.add(v);
+    const l=label(d[0],{color:'#97A3BC',size:.26});l.position.set(-3.6+i*2.4,-.35,z+.9);g.add(l);
+    this.bars.push({m,h,v,row,i})});
+  mk(sleepG,1.6,AMBER,0);mk(scrG,-1.6,CYAN,1);
+  this.r1=label('ҰЙҚЫ',{color:'#F2B655',size:.42,weight:800});this.r1.position.set(-6.2,.4,1.6);g.add(this.r1);
+  this.r2=label('ЭКРАН',{color:'#4FC3F7',size:.42,weight:800});this.r2.position.set(-6.2,.4,-1.6);g.add(this.r2);
+  this.rr=label('r = 0,41   ·   r = −0,37',{color:'#E9ECF4',size:.5,weight:700,bg:'rgba(14,21,38,.85)'});this.rr.position.set(0,5.6,0);g.add(this.rr);
+ },
+ update(p,t){
+  this.bars.forEach(b=>{const s=Math.max(.001,ease((p-(b.row?.46:.16)-b.i*.05)/.16));b.m.scale.y=b.h*s;b.m.position.y=b.h*s/2;b.v.position.set(b.m.position.x,b.h*s+.45,b.m.position.z);b.v.material.opacity=s;});
+  win(this.rr,.76,1.01,p);
+  camOrbit(12,-.6+Math.sin(t*.18)*.6,5,1.4);
+ }});
+
+/* E4 vicious loop */
+EP.push({k:'Шеңбер',title:'Жабық шеңбер және оны үзу',caps:[
+ [0,'Жобаның ең қызық тұжырымы: екі фактор бір-бірін күшейтеді.'],
+ [.22,'Экран ұйқыны қысқартады (r = −0,33). Аз ұйықтаған оқушының зейіні төмендейді.'],
+ [.46,'Тапсырма кешке сырғиды, кешкі тапсырма тағы экран алдында орындалады. Шеңбер жылдамдайды.'],
+ [.74,'Шеңберді бір жерден үзу жеткілікті: ұйқыдан 60 минут бұрын экранды сөндіру.']],
+ build(g){
+  const R0=2.6;this.R0=R0;
+  this.full=new THREE.Mesh(new THREE.TorusGeometry(R0,.06,16,160),new THREE.MeshBasicMaterial({color:CYAN}));g.add(this.full);
+  const gap=.7;this.broken=new THREE.Mesh(new THREE.TorusGeometry(R0,.06,16,160,Math.PI*2-gap),new THREE.MeshBasicMaterial({color:GREEN}));
+  this.broken.rotation.z=Math.PI*.75+gap/2;g.add(this.broken);
+  const nodes=[[Math.PI/2,'Экран уақыты ↑','#4FC3F7',CYAN],[0,'Ұйқы ↓','#F2B655',AMBER],[-Math.PI/2,'Зейін ↓','#FF7A6B',RED],[Math.PI,'Тапсырма\nкешке қалады','#E9ECF4',WHITE]];
+  nodes.forEach(([a,txt,css,hex])=>{const s=new THREE.Mesh(new THREE.SphereGeometry(.28,24,16),new THREE.MeshStandardMaterial({color:hex,emissive:hex,emissiveIntensity:.6}));s.position.set(Math.cos(a)*R0,Math.sin(a)*R0,0);g.add(s);
+    const l=label(txt,{color:css,size:.34,weight:700});const lr=R0+1.05;l.position.set(Math.cos(a)*lr*(a===0||a===Math.PI?1.25:1),Math.sin(a)*lr,0);g.add(l)});
+  [Math.PI/4,-Math.PI/4,-3*Math.PI/4,3*Math.PI/4].forEach(a=>{const c=new THREE.Mesh(new THREE.ConeGeometry(.16,.4,16),new THREE.MeshBasicMaterial({color:WHITE}));c.position.set(Math.cos(a)*R0,Math.sin(a)*R0,0);c.rotation.z=Math.atan2(-Math.sin(a),-Math.cos(a));g.add(c)});
+  const rl=label('r = −0,33',{color:'#FF7A6B',size:.3});rl.position.set(Math.cos(Math.PI/4)*(R0+.7),Math.sin(Math.PI/4)*(R0+.7),0);g.add(rl);
+  this.runner=glow(0xffffff,.9);g.add(this.runner);this.ang=Math.PI/2;
+  this.cut=label('Цифрлық күн батуы',{color:'#7BE0B0',size:.38,weight:800,bg:'rgba(14,21,38,.85)'});this.cut.position.set(Math.cos(Math.PI*.75)*(R0+1.3),Math.sin(Math.PI*.75)*(R0+1.3),.2);g.add(this.cut);
+ },
+ reset(){this.ang=Math.PI/2},
+ update(p,t,dt){
+  const broken=p>.74;this.full.visible=!broken;this.broken.visible=broken;
+  const heat=clamp((p-.2)/.5);this.full.material.color.setRGB(.31+.69*heat,.76-.28*heat,.97-.55*heat);
+  if(!broken){this.ang-=dt*(1.2+heat*5)}else{const stop=Math.PI*.75+.35+Math.PI*2*Math.ceil((this.ang-Math.PI*.75)/(Math.PI*2));this.ang+=(stop-this.ang)*Math.min(1,dt*3)}
+  this.runner.position.set(Math.cos(this.ang)*this.R0,Math.sin(this.ang)*this.R0,.1);this.runner.material.color.set(broken?GREEN:0xffffff);
+  win(this.cut,.74,1.01,p);
+  C.position.set(Math.sin(t*.25+orbit.yaw)*2,.4+orbit.pitch*4,9.5);C.lookAt(0,0,0);
+ }});
+
+/* E5 weekly sleep debt */
+EP.push({k:'Қарыз',title:'Апталық ұйқы қарызы',caps:[
+ [0,'Жұмыс күндері орташа ұйқы — 6 сағ 42 мин. Демалыста — 8 сағ 15 мин.'],
+ [.3,'Сарғыш жазықтық — ең төменгі норма, 8 сағат. Әр жұмыс күні 1 сағ 18 мин жетпейді.'],
+ [.54,'Жетіспеушілік жиналады: аптасына шамамен 6 сағат, яғни бір толық түн.'],
+ [.8,'Демалыстағы ұзақ ұйқы қарызды жаппайды, ырғақты ығыстырады. Бұл — «әлеуметтік джетлаг».']],
+ build(g){
+  const s=.42;this.s=s;const days=['Дс','Сс','Ср','Бс','Жм','Сн','Жс'];this.cols=[];this.debt=[];
+  days.forEach((d,i)=>{const h=(i<5?6.7:8.25)*s;const col=i<5?CYAN:AMBER;
+    const m=new THREE.Mesh(new THREE.BoxGeometry(.9,1,.9),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.2,transparent:true,opacity:.85}));m.position.x=-5.4+i*1.35;g.add(m);this.cols.push({m,h,i});
+    const l=label(d,{color:'#97A3BC',size:.3});l.position.set(-5.4+i*1.35,-.4,.6);g.add(l);
+    if(i<5){const b=new THREE.Mesh(new THREE.BoxGeometry(.9,1.3*s,.9),new THREE.MeshStandardMaterial({color:RED,emissive:RED,emissiveIntensity:.4,transparent:true,opacity:.75}));
+      const from=new THREE.Vector3(-5.4+i*1.35,6.7*s+.65*s,0),to=new THREE.Vector3(5.6,(i*1.2)*s+.6*s,0);b.position.copy(from);g.add(b);this.debt.push({b,from,to,i})}});
+  const norm=new THREE.Mesh(new THREE.BoxGeometry(10.5,.02,1.6),new THREE.MeshBasicMaterial({color:AMBER,transparent:true,opacity:.35}));norm.position.set(-1.35,8*s,0);g.add(norm);this.norm=norm;
+  this.ln=label('норма 8 сағ',{color:'#F2B655',size:.3});this.ln.position.set(-7.2,8*s+.3,0);g.add(this.ln);
+  this.lt=label('≈ 6 сағат\nаптасына',{color:'#FF7A6B',size:.38,weight:800});this.lt.position.set(5.6,7*s+.9,0);g.add(this.lt);
+  this.lj=label('«Әлеуметтік джетлаг»',{color:'#E9ECF4',size:.42,weight:800,bg:'rgba(14,21,38,.85)'});this.lj.position.set(0,5.4,0);g.add(this.lj);
+ },
+ update(p,t){
+  const s=this.s;
+  this.cols.forEach(c=>{const k=Math.max(.001,ease((p-.03-c.i*.04)/.14));c.m.scale.y=c.h*k;c.m.position.y=c.h*k/2});
+  this.norm.material.opacity=.4*ease((p-.28)/.06);win(this.ln,.28,1.01,p);
+  this.debt.forEach(d=>{const a=ease((p-.34-d.i*.03)/.06);const f=ease((p-.54-d.i*.03)/.14);d.b.scale.setScalar(Math.max(.001,a));d.b.position.copy(d.from).lerp(d.to,f)});
+  win(this.lt,.66,1.01,p);win(this.lj,.8,1.01,p);
+  camOrbit(12.5,-.25+Math.sin(t*.15)*.35,4.2,1.8);
+ }});
+
+/* E6 mediation */
+EP.push({k:'Жаңалық',title:'Жаңа нәтиже: экран әсерінің 29%-ы ұйқы арқылы',caps:[
+ [0,'Жобаның өз сандарынан жаңа нәтиже есептедік: медиация талдауы.'],
+ [.24,'Экранның бағаға әсерінің бір бөлігі ұйқы арқылы өтеді: экран → ұйқы → GPA.'],
+ [.5,'Бағалау: экран мен GPA байланысының шамамен 29%-ы ұйқы арқылы түсіндіріледі.'],
+ [.76,'Ұйқы мен экран бірге GPA айырмашылығының 23%-ын түсіндіреді. Келесі қадам — тәжірибе.']],
+ build(g){
+  const A=new THREE.Vector3(-3.6,-1.2,0),M=new THREE.Vector3(0,2.2,0),B=new THREE.Vector3(3.6,-1.2,0);
+  [[A,CYAN,'Экран','#4FC3F7'],[M,WHITE,'Ұйқы','#E9ECF4'],[B,AMBER,'GPA','#F2B655']].forEach(([v,c,t,css])=>{const s=new THREE.Mesh(new THREE.SphereGeometry(.55,32,20),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.5}));s.position.copy(v);g.add(s);const gl=glow(c,2.4);gl.position.copy(v);g.add(gl);const l=label(t,{color:css,size:.42,weight:800});l.position.copy(v).add(new THREE.Vector3(0,v.y>0?1:-1.05,0));g.add(l)});
+  this.c1=new THREE.CatmullRomCurve3([A,new THREE.Vector3(-1.9,1.2,.6),M,new THREE.Vector3(1.9,1.2,.6),B]);
+  this.c2=new THREE.CatmullRomCurve3([A,new THREE.Vector3(0,-1.9,.4),B]);
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(this.c1,80,.05,8),new THREE.MeshBasicMaterial({color:AMBER,transparent:true,opacity:.45})));
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(this.c2,60,.08,8),new THREE.MeshBasicMaterial({color:CYAN,transparent:true,opacity:.45})));
+  const N=180;this.P=pts(N,CYAN,.22);g.add(this.P);this.o=[...Array(N)].map((_,i)=>({k:Math.random(),via:i<Math.round(N*.29)}));
+  const c=this.P.geometry.attributes.color.array,ca=new THREE.Color(AMBER);this.o.forEach((o,i)=>{if(o.via)c.set([ca.r,ca.g,ca.b],i*3)});
+  this.la=label('a = −0,33',{color:'#FF7A6B',size:.3});this.la.position.set(-2.6,1.2,0);g.add(this.la);
+  this.lb=label('b = 0,32',{color:'#F2B655',size:.3});this.lb.position.set(2.6,1.2,0);g.add(this.lb);
+  this.lc=label('c′ = −0,26',{color:'#4FC3F7',size:.3});this.lc.position.set(0,-2.4,0);g.add(this.lc);
+  this.big=label('ұйқы арқылы ≈ 29%',{color:'#F2B655',size:.5,weight:800,bg:'rgba(14,21,38,.85)'});this.big.position.set(0,4,0);g.add(this.big);
+  this.r2=label('R² ≈ 0,23',{color:'#E9ECF4',size:.4,weight:700,bg:'rgba(14,21,38,.85)'});this.r2.position.set(0,-3.3,0);g.add(this.r2);
+ },
+ update(p,t){
+  const show=ease((p-.18)/.1),a=this.P.geometry.attributes.position.array,v=new THREE.Vector3();
+  this.o.forEach((o,i)=>{const k=(o.k+t*(o.via?.16:.22))%1;(o.via?this.c1:this.c2).getPoint(k,v);a[i*3]=v.x;a[i*3+1]=v.y+(Math.sin(i*7.3)*.08);a[i*3+2]=v.z+(Math.cos(i*3.1)*.08)});
+  this.P.geometry.attributes.position.needsUpdate=true;this.P.material.opacity=show;
+  win(this.la,.24,1.01,p);win(this.lb,.24,1.01,p);win(this.lc,.24,1.01,p);win(this.big,.48,1.01,p);win(this.r2,.74,1.01,p);
+  camOrbit(10.5,Math.sin(t*.2)*.45,1,.4);
+ }});
+
+const DUR=22;
+EP.forEach(e=>{e.g=new THREE.Group();e.g.visible=false;S.add(e.g)});
+let built=false;
+function buildAll(){if(built)return;EP.forEach(e=>e.build(e.g));built=true}
+
+let cur=0,tt=0,playing=false,lastCap=-1,voiceOn=false,kkVoice=null;
+const segs=$('segs'),chips=$('chips');
+EP.forEach((e,i)=>{const b=document.createElement('button');b.className='seg';b.setAttribute('aria-label',(i+1)+'-эпизод');b.innerHTML='<i></i>';b.onclick=()=>go(i,true);segs.appendChild(b);
+  const c=document.createElement('button');c.className='chip';c.innerHTML=`<span class="mono">${String(i+1).padStart(2,'0')} · ${e.k}</span><b>${e.title}</b>`;c.onclick=()=>{go(i,true);$('screen').scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'})};chips.appendChild(c)});
+function go(i,play){buildAll();EP[cur].g.visible=false;cur=i;tt=0;lastCap=-1;EP[cur].g.visible=true;if(EP[cur].reset)EP[cur].reset();
+  $('epK').textContent=String(i+1).padStart(2,'0')+'/'+String(EP.length).padStart(2,'0');$('epT').textContent=EP[i].title;
+  [...chips.children].forEach((c,j)=>c.setAttribute('aria-current',j===i?'true':'false'));
+  if(play){fresh=false;setPlay(true)}}
+function setPlay(v){buildAll();playing=v;$('bigPlay').hidden=v;$('playBtn').textContent=v?'❚❚ Тоқтату':'▶ Ойнату';if(!v&&window.speechSynthesis)speechSynthesis.cancel();if(v)lastCap=-1}
+let fresh=true;
+$('bigPlay').onclick=()=>{if(fresh){fresh=false;go(0,false)}setPlay(true)};
+$('playBtn').onclick=()=>{if(fresh){fresh=false;go(0,false)}setPlay(!playing)};
+$('fsBtn').onclick=()=>{const el=$('screen');try{if(document.fullscreenElement)document.exitFullscreen();else if(el.requestFullscreen)el.requestFullscreen().catch(()=>{$('voiceNote').textContent='Бұл терезеде толық экран рұқсат етілмеген.'});else $('voiceNote').textContent='Бұл терезеде толық экран рұқсат етілмеген.'}catch(e){$('voiceNote').textContent='Бұл терезеде толық экран рұқсат етілмеген.'}};
+function findVoice(){if(!window.speechSynthesis)return null;const v=speechSynthesis.getVoices();return v.find(x=>/^kk/i.test(x.lang))||null}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{kkVoice=findVoice()};kkVoice=findVoice()}
+$('voiceBtn').onclick=()=>{kkVoice=findVoice();
+  if(!window.speechSynthesis||!kkVoice){$('voiceNote').textContent='Бұл құрылғыда қазақ тіліндегі дауыс табылмады. Субтитрлер жұмыс істейді. Дауыс үшін құрылғы баптауларынан қазақ тілінің сөйлеу пакетін орнатыңыз.';voiceOn=false;$('voiceBtn').setAttribute('aria-pressed','false');return}
+  voiceOn=!voiceOn;$('voiceBtn').setAttribute('aria-pressed',String(voiceOn));$('voiceNote').textContent=voiceOn?'Дауыс қосулы.':'';if(!voiceOn)speechSynthesis.cancel();lastCap=-1};
+function speak(t){if(!voiceOn||!kkVoice)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.voice=kkVoice;u.lang=kkVoice.lang;u.rate=1;speechSynthesis.speak(u)}catch(e){}}
+
+/* drag to orbit */
+let drag=null;cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:orbit.yaw,pitch:orbit.pitch};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;orbit.yaw=drag.yaw-(e.clientX-drag.x)*.008;orbit.pitch=clamp(drag.pitch+(e.clientY-drag.y)*.004,-.5,.6)});
+cv.addEventListener('pointerup',()=>{drag=null});cv.addEventListener('pointercancel',()=>{drag=null});
+cv.style.touchAction='pan-y';
+
+function resize(){const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;R.setSize(w,h,false);C.aspect=w/h;C.fov=w/h<1?68:48;C.updateProjectionMatrix()}
+addEventListener('resize',resize);
+let vis=true;new IntersectionObserver(e=>{vis=e[0].isIntersecting}).observe(cv);
+const clk=new THREE.Clock();let T=0;
+function frame(){requestAnimationFrame(frame);const dt=Math.min(.05,clk.getDelta());if(!vis)return;
+  if(!built){R.render(S,C);return}
+  T+=dt;if(playing){tt+=dt;if(tt>=DUR){if(cur<EP.length-1)go(cur+1,false);else{tt=DUR;setPlay(false)}}}
+  const p=clamp(tt/DUR),e=EP[cur];e.update(p,T,playing?dt:0);
+  let ci=0;e.caps.forEach((c,i)=>{if(p>=c[0])ci=i});
+  if(ci!==lastCap){lastCap=ci;$('caption').textContent=e.caps[ci][1];if(playing)speak(e.caps[ci][1])}
+  [...segs.children].forEach((s,i)=>{s.firstChild.style.width=(i<cur?100:i===cur?p*100:0)+'%'});
+  const tot=cur*DUR+tt;$('timeLbl').textContent=Math.floor(tot/60)+':'+String(Math.floor(tot%60)).padStart(2,'0')+' / '+Math.floor(EP.length*DUR/60)+':'+String(EP.length*DUR%60).padStart(2,'0');
+  R.render(S,C)}
+const start=()=>{resize();buildAll();go(0,false);tt=DUR*.62;EP[0].g.visible=true;lastCap=-1;frame()};
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(start,start);
+})();
+</script>
+</body>
+</html>
